@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/justo-tapiador/epi-lean/main/schemas/semantic-registry.schema.json",
+  "title": "EPI-LEAN semantic registry",
+  "description": "Schema for the EPI-LEAN semantic registry: human-authored mathematical interpretations attached to Lean declarations. A 'reviewed' status is a workflow annotation, never a machine-verified truth claim.",
+  "type": "object",
+  "required": ["entries"],
+  "properties": {
+    "registry_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Version of the registry format itself."
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["declaration", "interpretation", "status"],
+      "properties": {
+        "declaration": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact Lean declaration name the entry refers to."
+        },
+        "interpretation": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Concise mathematical interpretation of the declaration."
+        },
+        "status": {
+          "enum": ["proposed", "under_review", "reviewed"],
+          "description": "Review status. 'reviewed' is a human workflow annotation, not a machine-verified truth claim."
+        },
+        "evidence": {
+          "type": "string",
+          "description": "Supporting source, definition mapping, or reviewer note. Required in practice for 'reviewed' entries (enforced by EPI-LEAN's loader, not by this schema)."
+        },
+        "reviewed_by": {
+          "type": "string",
+          "description": "Identifier of the human reviewer, for 'reviewed' entries."
+        },
+        "reviewed_at": {
+          "type": "string",
+          "description": "Date of the human review (ISO 8601 recommended)."
+        },
+        "origin": {
+          "enum": ["human", "ai_proposal"],
+          "default": "human",
+          "description": "Whether the interpretation was authored by a human or proposed by an AI system. AI proposals must never be auto-marked 'reviewed'."
+        },
+        "references": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Optional pointers to mathematical literature or documentation supporting the interpretation."
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

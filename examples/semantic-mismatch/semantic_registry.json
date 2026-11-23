@@ -1,0 +1,23 @@
+{
+  "registry_version": "0.1.0",
+  "entries": [
+    {
+      "declaration": "IsSquareNonnegative",
+      "interpretation": "Claims to represent: the square of a real number is nonnegative (0 ≤ x * x).",
+      "status": "proposed",
+      "evidence": "Suggested by the declaration name; the formal body is 0 ≤ x + x on Nat, which expresses nonnegativity of the double (on Nat equivalent to 0 ≤ x), not of the square."
+    },
+    {
+      "declaration": "square_nonnegative_via_auxiliary",
+      "interpretation": "Claims to establish: the square of a number is nonnegative via the auxiliary definition.",
+      "status": "proposed",
+      "evidence": "The conclusion restates the hypothesis IsSquareNonnegative x (i.e. 0 ≤ x + x); it does not establish 0 ≤ x * x."
+    },
+    {
+      "declaration": "square_nonnegative_nat",
+      "interpretation": "The square of a natural number is nonnegative.",
+      "status": "reviewed",
+      "evidence": "The formal proposition 0 ≤ x * x matches the intended informal statement; proved by Nat.le_mul_self."
+    }
+  ]
+}

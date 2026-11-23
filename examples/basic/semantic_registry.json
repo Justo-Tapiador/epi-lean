@@ -1,0 +1,23 @@
+{
+  "registry_version": "0.1.0",
+  "entries": [
+    {
+      "declaration": "foundational_assumption",
+      "interpretation": "An explicitly assumed foundational proposition in this toy example.",
+      "status": "proposed",
+      "evidence": "The declaration is marked with the Lean axiom command."
+    },
+    {
+      "declaration": "intermediate_result",
+      "interpretation": "A toy intermediate result proved directly from the foundational assumption.",
+      "status": "proposed",
+      "evidence": "Its proof term is the name foundational_assumption (see Basic.lean)."
+    },
+    {
+      "declaration": "final_result",
+      "interpretation": "A proposition derived from the intermediate result in this toy example.",
+      "status": "under_review",
+      "evidence": "Inspect the source-level dependency chain in Basic.lean."
+    }
+  ]
+}

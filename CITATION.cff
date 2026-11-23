@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use EPI-LEAN in research, please cite this software."
+title: "EPI-LEAN: Epistemic Proof Intelligence for Lean"
+type: software
+version: 0.2.0
+authors:
+  - name: "Justo Tapiador"
+license: Apache-2.0
+abstract: >
+  An open-source research framework for auditing the epistemic structure
+  of formally verified mathematical proofs, focusing on semantic
+  traceability, assumption provenance, and mathematical correspondence.
