@@ -80,7 +80,7 @@ def sanitize(text: str, limit: int = MAX_FIELD_CHARS) -> str:
     """Make untrusted text safe to embed: no control chars, no tag
     break-outs, bounded length."""
     cleaned = re.sub(r"[\x00-\x08\x0b-\x1f\x7f]", " ", str(text))
-    cleaned = re.sub(r"</?\s*untrusted_data\s*>", "[tag removed]", cleaned, flags=re.I)
+    cleaned = re.sub(r"</?\s*untrusted_data\s*>", "[tag removed]", cleaned, flags=re.IGNORECASE)
     return cleaned[:limit]
 
 
@@ -97,7 +97,7 @@ def parse_json_object(text: str) -> dict:
         raise ValueError("no JSON object in model reply")
     value = json.loads(cleaned[start : end + 1])
     if not isinstance(value, dict):
-        raise ValueError("model reply is not a JSON object")
+        raise TypeError("model reply is not a JSON object")
     return value
 
 
@@ -183,8 +183,8 @@ def propose_entries(
         try:
             rows = parse_json_object(reply).get("entries")
             if not isinstance(rows, list):
-                raise ValueError("'entries' is not a list")
-        except (ValueError, json.JSONDecodeError) as error:
+                raise TypeError("'entries' is not a list")
+        except (TypeError, ValueError) as error:
             trail.append(
                 "ai_response",
                 task="propose",
@@ -460,8 +460,8 @@ def supervise_report(
     try:
         rows = parse_json_object(reply).get("observations", [])
         if not isinstance(rows, list):
-            raise ValueError("'observations' is not a list")
-    except (ValueError, json.JSONDecodeError) as error:
+            raise TypeError("'observations' is not a list")
+    except (TypeError, ValueError) as error:
         rows = []
         dropped.append({"reason": f"unparseable reply: {error}"})
 

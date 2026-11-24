@@ -113,11 +113,13 @@ def render_markdown(report: dict) -> str:
         lines.extend([
             "## Internal declarations excluded",
             "",
-            f"{internal_filter['filtered']} compiler/elaborator-generated "
-            f"constants were excluded from the declaration list ({rules}). "
-            "The dependency graph was contracted through them, so no "
-            "reachability is lost; axiom provenance is unchanged. Use "
-            "`--include-internal` to list them.",
+            (
+                f"{internal_filter['filtered']} compiler/elaborator-generated "
+                f"constants were excluded from the declaration list ({rules}). "
+                "The dependency graph was contracted through them, so no "
+                "reachability is lost; axiom provenance is unchanged. Use "
+                "`--include-internal` to list them."
+            ),
             "",
         ])
 
@@ -141,8 +143,10 @@ def render_markdown(report: dict) -> str:
         lines.extend([
             "## Dependency frontier (constants outside the audited modules)",
             "",
-            f"{frontier['external_constant_count']} distinct external "
-            "constants are used. Most-used:",
+            (
+                f"{frontier['external_constant_count']} distinct external "
+                "constants are used. Most-used:"
+            ),
             "",
             "| External constant | Audited declarations using it |",
             "|---|---|",

@@ -7,10 +7,10 @@ from pathlib import Path
 import pytest
 
 from epilean import providers
+from epilean.audit import audit_project_from_dump
 from epilean.cli import main
 from epilean.dump import load_dump_records
 from epilean.epistemic import POTENTIAL_MISMATCH
-from epilean.audit import audit_project_from_dump
 from epilean.providers import (
     AnthropicProvider,
     CassetteProvider,
@@ -114,7 +114,7 @@ def test_proposed_registry_loads_cleanly_and_stays_unreviewed(tmp_path):
     outcome = propose_entries(RECORDS, FakeProvider(reply), AuditTrail(tmp_path / "t.jsonl"))
     registry = tmp_path / "ai.json"
     registry.write_text(json.dumps(outcome["registry"]), encoding="utf-8")
-    entries, warnings = load_semantic_registry(registry, {r["name"] for r in RECORDS})
+    _entries, warnings = load_semantic_registry(registry, {r["name"] for r in RECORDS})
     assert warnings == []
     report = audit_project_from_dump(_dump(tmp_path), registry)
     hub = next(a for a in report["epistemic_assessments"] if a["declaration"] == "hub")

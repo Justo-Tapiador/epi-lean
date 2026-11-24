@@ -157,7 +157,10 @@ def test_closure_modes_in_report(tmp_path):
     full = audit_project_from_dump(dump, closure_mode="full")
     count = audit_project_from_dump(dump, closure_mode="count")
     none = audit_project_from_dump(dump, closure_mode="none")
-    a = lambda r: next(x for x in r["declaration_audits"] if x["name"] == "a")  # noqa: E731
+
+    def a(report):
+        return next(x for x in report["declaration_audits"] if x["name"] == "a")
+
     assert a(full)["transitive_dependencies"] == ["b", "c"]
     assert a(full)["transitive_dependency_count"] == 2
     assert "transitive_dependencies" not in a(count)
