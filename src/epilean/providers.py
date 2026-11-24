@@ -50,7 +50,7 @@ def _post_json(url: str, headers: dict, payload: dict, timeout: int) -> dict:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
+        with urllib.request.urlopen(request, timeout=timeout) as response:
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", errors="replace")[:300]
