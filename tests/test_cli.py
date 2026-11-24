@@ -13,7 +13,7 @@ def test_version_flag(capsys):
         exit_code = caught.code
     assert exit_code == 0
     captured = capsys.readouterr()
-    assert "0.2.0" in captured.out
+    assert "0.2.1" in captured.out
 
 
 def test_audit_writes_markdown_report(tmp_path, capsys):

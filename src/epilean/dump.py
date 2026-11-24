@@ -36,13 +36,18 @@ class DumpFormatError(ValueError):
     """Raised when a dump line does not match the expected shape."""
 
 
-def load_dump(path: Path) -> list[Declaration]:
-    """Load an EPI-LEAN JSONL dump into Declaration objects.
+OPTIONAL_TEXT_FIELDS = ("statement", "docstring", "module")
 
-    File, line, and source fields are empty: they do not exist at the
-    elaborated-environment level (positions are a source-file concept).
+
+def load_dump_records(path: Path) -> list[dict]:
+    """Load and validate a JSONL dump, returning the raw records.
+
+    Required: name, kind, dependencies. Optional: axioms (list of
+    names) and the text fields ``statement``, ``docstring``, ``module``
+    (used as context by the AI proposal layer when the dumper emits
+    them). Unknown extra fields are preserved untouched.
     """
-    declarations = []
+    records = []
 
     with open(path, encoding="utf-8") as handle:
         for number, line in enumerate(handle, start=1):
@@ -57,6 +62,11 @@ def load_dump(path: Path) -> list[Declaration]:
                 raise DumpFormatError(
                     f"{path}:{number}: invalid JSON: {error}"
                 ) from error
+
+            if not isinstance(record, dict):
+                raise DumpFormatError(
+                    f"{path}:{number}: each line must be a JSON object"
+                )
 
             try:
                 name = record["name"]
@@ -94,23 +104,44 @@ def load_dump(path: Path) -> list[Declaration]:
                     f"{path}:{number}: axioms must be a list of names"
                 )
 
-            declarations.append(
-                Declaration(
-                    name=name,
-                    kind=kind,
-                    file="",
-                    line=0,
-                    source="",
-                    dependencies=tuple(sorted(set(dependencies))),
-                )
-            )
+            for key in OPTIONAL_TEXT_FIELDS:
+                if key in record and not isinstance(record[key], str):
+                    raise DumpFormatError(
+                        f"{path}:{number}: {key} must be a string"
+                    )
 
-    if not declarations:
+            records.append(record)
+
+    if not records:
         raise DumpFormatError(
             f"{path}: no declarations found in dump"
         )
 
-    return declarations
+    return records
+
+
+def declarations_from_records(records: list[dict]) -> list[Declaration]:
+    """Build Declaration objects from validated dump records.
+
+    File, line, and source fields are empty: they do not exist at the
+    elaborated-environment level (positions are a source-file concept).
+    """
+    return [
+        Declaration(
+            name=record["name"],
+            kind=record["kind"],
+            file="",
+            line=0,
+            source="",
+            dependencies=tuple(sorted(set(record["dependencies"]))),
+        )
+        for record in records
+    ]
+
+
+def load_dump(path: Path) -> list[Declaration]:
+    """Load an EPI-LEAN JSONL dump into Declaration objects."""
+    return declarations_from_records(load_dump_records(path))
 
 
 def declared_axioms(declarations: list[Declaration]) -> list[str]:

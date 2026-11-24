@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "epi-lean"
-version = "0.2.0"
+version = "0.2.1"
 description = "A framework for auditing the epistemic structure of Lean proofs."
 readme = "README.md"
 requires-python = ">=3.10"

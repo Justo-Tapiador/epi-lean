@@ -104,6 +104,53 @@ def render_markdown(report: dict) -> str:
             lines.append(f"| `{axiom}` | {count} |")
         lines.append("")
 
+    internal_filter = report.get("internal_filter")
+    if internal_filter and internal_filter.get("filtered"):
+        rules = ", ".join(
+            f"{rule}: {count}"
+            for rule, count in internal_filter.get("by_rule", {}).items()
+        )
+        lines.extend([
+            "## Internal declarations excluded",
+            "",
+            f"{internal_filter['filtered']} compiler/elaborator-generated "
+            f"constants were excluded from the declaration list ({rules}). "
+            "The dependency graph was contracted through them, so no "
+            "reachability is lost; axiom provenance is unchanged. Use "
+            "`--include-internal` to list them.",
+            "",
+        ])
+
+    closure = report.get("closure")
+    if closure and closure.get("mode") != "full":
+        lines.extend([
+            "## Transitive closure",
+            "",
+            f"Mode: `{closure['mode']}` (requested: `{closure['requested']}`). "
+            + (
+                "Only closure sizes are reported (`transitive_dependency_count` "
+                "in the JSON report)."
+                if closure["mode"] == "count"
+                else "Closures were not computed for a project of this size."
+            ),
+            "",
+        ])
+
+    frontier = report.get("frontier")
+    if frontier and frontier.get("top"):
+        lines.extend([
+            "## Dependency frontier (constants outside the audited modules)",
+            "",
+            f"{frontier['external_constant_count']} distinct external "
+            "constants are used. Most-used:",
+            "",
+            "| External constant | Audited declarations using it |",
+            "|---|---|",
+        ])
+        for item in frontier["top"][:20]:
+            lines.append(f"| `{item['name']}` | {item['used_by']} |")
+        lines.append("")
+
     # Declaration table (truncated for large reports).
     shown_audits, _truncated = _truncate(declaration_audits)
 
