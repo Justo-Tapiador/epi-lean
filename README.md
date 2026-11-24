@@ -347,8 +347,25 @@ prototype with **two extraction modes**:
 - Identification of explicitly declared axioms in dependency closures.
 - **Axiom provenance histogram** in every report: how many
   declarations' closures contain each axiom (e.g. for
-  `Mathlib.Data.Set.Basic`: `propext` 530, `Quot.sound` 465,
-  `Classical.choice` 349 — real numbers, kernel-computed).
+  `Mathlib.Data.Set.Basic`: `propext` 394, `Quot.sound` 387,
+  `Classical.choice` 295 — real numbers, kernel-computed).
+- **Scale features (0.2.1)**: compiler/elaborator artifacts
+  (`_auxLemma.N`, `match_N`, `proof_N`, `eq_N`, `_elambda_N`) are
+  excluded by default and the graph is *contracted* through them
+  (no reachability lost); transitive closure is computed with
+  SCC condensation + bitsets (`--closure full|count|none|auto`); a
+  **dependency frontier** summarizes which constants outside the
+  audited modules (e.g. Mathlib) the project relies on; `--lake`
+  dumps modules in parallel (`--jobs`) with a fingerprinted cache;
+  `epilean why` explains which dependency chain brings an axiom into a
+  declaration.
+- **AI layer (experimental, opt-in)**: `epilean propose` asks a model
+  to *propose* registry entries and `epilean supervise` runs
+  deterministic checks plus an optional AI second review. Models are
+  reached through a provider-agnostic interface (Anthropic,
+  OpenAI-compatible/local, record/replay), every exchange goes into a
+  hash-chained trail (`epilean verify-trail`), and the guardrails of
+  Principle 4 are enforced in code. See `docs/AI_SUPERVISION.md`.
 - **Large-report handling**: markdown tables truncate above 60
   declarations (head + tail with an explicit omission marker); the
   JSON report always carries everything.
@@ -417,6 +434,12 @@ The current version does not:
 - Automatically determine the intended meaning of a declaration.
 - Establish that an informal theorem is faithfully represented.
 - Certify the epistemic adequacy of a mathematical proof.
+
+The AI layer does not make a model an authority: its output is
+labeled unverified, cannot set `reviewed`, and cannot change a
+deterministic finding. Proposals made from names and dependencies alone
+(the current dump carries no statement text) are weak; see
+`docs/AI_SUPERVISION.md`.
 
 Source mode additionally does not guarantee complete dependency
 extraction (it is a heuristic); use `--lake`/`--dump` (exact mode) for
@@ -546,6 +569,27 @@ To audit specific modules only:
 epilean audit . --lake --module MyProject.Basic --module MyProject.Core
 ```
 
+For large projects:
+
+```bash
+epilean audit . --lake --jobs 4 --closure count --format json --output report.json
+```
+
+`--jobs N` runs N Lean processes at once (each loads its module's
+imports, so memory grows with N). The combined dump is cached under
+`.lake/epilean-cache/`, keyed by a fingerprint of the Lean version, the
+dump program, the module list and every `.olean`; re-auditing an
+unchanged project (e.g. after editing the semantic registry) runs no
+Lean at all. `--no-cache` disables it. `--closure` controls how
+transitive dependencies are reported (`auto` = full lists up to 2,000
+declarations, counts up to 50,000, none beyond).
+
+To see why a declaration depends on an axiom:
+
+```bash
+epilean why dump.jsonl Set.sep_eq_of_subset propext
+```
+
 ### Audit an existing dump (exact mode)
 
 ```bash
@@ -565,10 +609,16 @@ lake env lean --run tools/EpiDump.lean -- set-basic.jsonl Mathlib.Data.Set.Basic
 epilean audit set-basic.jsonl --dump --format json
 ```
 
-Verified on Mathlib at tag `v4.15.0`: `Mathlib.Data.Set.Basic` yields
-736 declarations with kernel-computed axiom provenance — `propext`
-appears in 530 declarations' closures, `Quot.sound` in 465, and
-`Classical.choice` in 349. `Mathlib.Algebra.Group.Basic` yields 492.
+Verified on Mathlib at tag `v4.15.0`: `Mathlib.Data.Set.Basic` dumps
+736 constants, of which 168 are compiler/elaborator artifacts and are
+excluded by default, leaving 568 declarations with kernel-computed
+axiom provenance — `propext` appears in 394 declarations' closures,
+`Quot.sound` in 387, and `Classical.choice` in 295.
+`Mathlib.Algebra.Group.Basic` dumps 492 constants (436 after
+filtering). Before 0.2.1 the raw 736 and the unfiltered histogram
+(530/465/349) were reported, and two `_elambda_N` compiler constants
+were counted as project axioms; `--include-internal` reproduces the old
+view.
 
 ---
 
@@ -791,7 +841,8 @@ EPI-LEAN is being developed incrementally.
 | Version | Planned capabilities |
 |---|---|
 | `0.1.x` | Source-level extraction, dependency graph, axiom provenance, semantic registry, epistemic statuses, non-interference reports |
-| `0.2.0` | Lean-aware extraction from elaborated environments *(current)* |
+| `0.2.0` | Lean-aware extraction from elaborated environments |
+| `0.2.1` | Scale hardening (internal-artifact contraction, closure statistics, frontier, parallel cached dumps) and an experimental AI proposal/supervision layer *(current)* |
 | `0.3.0` | Semantic contracts and correspondence obligations |
 | `0.4.0` | Epistemic traceability and meaning-preservation analysis |
 | `0.5.0` | AI-assisted research with human review |

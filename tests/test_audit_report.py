@@ -139,4 +139,4 @@ def test_version_is_recorded(tmp_path):
 
     report = audit_project(tmp_path)
 
-    assert report["version"] == "0.2.0"
+    assert report["version"] == "0.2.1"
